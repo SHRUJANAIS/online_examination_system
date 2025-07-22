@@ -1,0 +1,32 @@
+CREATE TABLE final_results (
+    result_id INT(11) NOT NULL PRIMARY KEY,
+    srn VARCHAR(255) COLLATE utf8mb4_general_ci NOT NULL,
+    total_marks INT(11) NOT NULL
+);
+
+
+
+triggerer
+
+
+
+DELIMITER $$
+
+CREATE TRIGGER update_final_results
+AFTER INSERT ON results
+FOR EACH ROW
+BEGIN
+    -- Check if the user already exists in the final_results table
+    IF EXISTS (SELECT 1 FROM final_results WHERE srn = NEW.srn) THEN
+        -- If the user exists, update the final_results table with the highest marks
+        UPDATE final_results
+        SET total_marks = GREATEST(total_marks, NEW.total_marks)
+        WHERE srn = NEW.srn;
+    ELSE
+        -- If the user does not exist in the final_results table, insert the new user with their marks
+        INSERT INTO final_results (srn, total_marks)
+        VALUES (NEW.srn, NEW.total_marks);
+    END IF;
+END $$
+
+DELIMITER 
